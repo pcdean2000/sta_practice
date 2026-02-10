@@ -1,6 +1,6 @@
 # STA Analysis Report
 
-**Generated on:** 2026-02-10 20:47:55
+**Generated on:** 2026-02-10 19:52:04
 
 ## 1. Executive Summary
 
@@ -20,7 +20,7 @@
 
 ## 3. Top Critical Paths
 
-The following table shows the top timing paths (up to 20 worst violations).
+The following table shows the top timing paths (up to 10 worst violations) or all paths if fewer than 10.
 
 | Node | AT (ns) | RT (ns) | Slack (ns) | Status |
 | :--- | :---: | :---: | :---: | :---: |

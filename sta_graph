@@ -1,0 +1,151 @@
+// STA Timing Graph
+digraph {
+	rankdir=LR
+	"reg_b0/C" [label="reg_b0/C
+AT: -1.00
+Slack: 0.00" fillcolor=white style=filled]
+	"reg_b0/D" [label="reg_b0/D
+AT: -1.00
+Slack: 0.00" fillcolor=white style=filled]
+	"reg_b0/Q" [label="reg_b0/Q
+AT: -1.00
+Slack: 0.00" fillcolor=white style=filled]
+	"reg_b0/Q" -> "x0/B" [label=0.01 style=solid]
+	"reg_b0/Q" -> "a0/B" [label=0.01 style=solid]
+	"reg_b1/C" [label="reg_b1/C
+AT: -1.00
+Slack: 0.00" fillcolor=white style=filled]
+	"reg_b1/D" [label="reg_b1/D
+AT: -1.00
+Slack: 0.00" fillcolor=white style=filled]
+	"reg_b1/Q" [label="reg_b1/Q
+AT: -1.00
+Slack: 0.00" fillcolor=white style=filled]
+	"reg_b1/Q" -> "x1a/B" [label=0.01 style=solid]
+	"reg_b1/Q" -> "a1a/B" [label=0.01 style=solid]
+	"reg_b2/C" [label="reg_b2/C
+AT: -1.00
+Slack: 0.00" fillcolor=white style=filled]
+	"reg_b2/D" [label="reg_b2/D
+AT: -1.00
+Slack: 0.00" fillcolor=white style=filled]
+	"reg_b2/Q" [label="reg_b2/Q
+AT: -1.00
+Slack: 0.00" fillcolor=white style=filled]
+	"reg_b3/C" [label="reg_b3/C
+AT: -1.00
+Slack: 0.00" fillcolor=white style=filled]
+	"reg_b3/D" [label="reg_b3/D
+AT: -1.00
+Slack: 0.00" fillcolor=white style=filled]
+	"reg_b3/Q" [label="reg_b3/Q
+AT: -1.00
+Slack: 0.00" fillcolor=white style=filled]
+	"x0/A" [label="x0/A
+AT: -1.00
+Slack: 0.00" fillcolor=white style=filled]
+	"x0/A" -> "x0/Y" [label=0.06 style=dashed]
+	"x0/B" [label="x0/B
+AT: -1.00
+Slack: 0.00" fillcolor=white style=filled]
+	"x0/B" -> "x0/Y" [label=0.06 style=dashed]
+	"x0/Y" [label="x0/Y
+AT: -1.00
+Slack: 0.00" fillcolor=white style=filled]
+	"x0/Y" -> "reg_sum0/D" [label=0.01 style=solid]
+	"a0/A" [label="a0/A
+AT: -1.00
+Slack: 0.00" fillcolor=white style=filled]
+	"a0/A" -> "a0/Y" [label=0.04 style=dashed]
+	"a0/B" [label="a0/B
+AT: -1.00
+Slack: 0.00" fillcolor=white style=filled]
+	"a0/B" -> "a0/Y" [label=0.04 style=dashed]
+	"a0/Y" [label="a0/Y
+AT: -1.00
+Slack: 0.00" fillcolor=white style=filled]
+	"a0/Y" -> "x1b/B" [label=0.01 style=solid]
+	"a0/Y" -> "a1b/B" [label=0.01 style=solid]
+	"x1a/A" [label="x1a/A
+AT: -1.00
+Slack: 0.00" fillcolor=white style=filled]
+	"x1a/A" -> "x1a/Y" [label=0.06 style=dashed]
+	"x1a/B" [label="x1a/B
+AT: -1.00
+Slack: 0.00" fillcolor=white style=filled]
+	"x1a/B" -> "x1a/Y" [label=0.06 style=dashed]
+	"x1a/Y" [label="x1a/Y
+AT: -1.00
+Slack: 0.00" fillcolor=white style=filled]
+	"x1a/Y" -> "x1b/A" [label=0.01 style=solid]
+	"x1a/Y" -> "a1b/A" [label=0.01 style=solid]
+	"x1b/A" [label="x1b/A
+AT: -1.00
+Slack: 0.00" fillcolor=white style=filled]
+	"x1b/A" -> "x1b/Y" [label=0.06 style=dashed]
+	"x1b/B" [label="x1b/B
+AT: -1.00
+Slack: 0.00" fillcolor=white style=filled]
+	"x1b/B" -> "x1b/Y" [label=0.06 style=dashed]
+	"x1b/Y" [label="x1b/Y
+AT: -1.00
+Slack: 0.00" fillcolor=white style=filled]
+	"x1b/Y" -> "reg_sum1/D" [label=0.01 style=solid]
+	"a1a/A" [label="a1a/A
+AT: -1.00
+Slack: 0.00" fillcolor=white style=filled]
+	"a1a/A" -> "a1a/Y" [label=0.04 style=dashed]
+	"a1a/B" [label="a1a/B
+AT: -1.00
+Slack: 0.00" fillcolor=white style=filled]
+	"a1a/B" -> "a1a/Y" [label=0.04 style=dashed]
+	"a1a/Y" [label="a1a/Y
+AT: -1.00
+Slack: 0.00" fillcolor=white style=filled]
+	"a1a/Y" -> "o1/A" [label=0.01 style=solid]
+	"a1b/A" [label="a1b/A
+AT: -1.00
+Slack: 0.00" fillcolor=white style=filled]
+	"a1b/A" -> "a1b/Y" [label=0.04 style=dashed]
+	"a1b/B" [label="a1b/B
+AT: -1.00
+Slack: 0.00" fillcolor=white style=filled]
+	"a1b/B" -> "a1b/Y" [label=0.04 style=dashed]
+	"a1b/Y" [label="a1b/Y
+AT: -1.00
+Slack: 0.00" fillcolor=white style=filled]
+	"a1b/Y" -> "o1/B" [label=0.01 style=solid]
+	"o1/A" [label="o1/A
+AT: -1.00
+Slack: 0.00" fillcolor=white style=filled]
+	"o1/A" -> "o1/Y" [label=0.04 style=dashed]
+	"o1/B" [label="o1/B
+AT: -1.00
+Slack: 0.00" fillcolor=white style=filled]
+	"o1/B" -> "o1/Y" [label=0.04 style=dashed]
+	"o1/Y" [label="o1/Y
+AT: -1.00
+Slack: 0.00" fillcolor=white style=filled]
+	"reg_sum0/C" [label="reg_sum0/C
+AT: -1.00
+Slack: 0.00" fillcolor=white style=filled]
+	"reg_sum0/D" [label="reg_sum0/D
+AT: -1.00
+Slack: 0.00" fillcolor=white style=filled]
+	"reg_sum0/Q" [label="reg_sum0/Q
+AT: -1.00
+Slack: 0.00" fillcolor=white style=filled]
+	"reg_sum0/Q" -> "x0/A" [label=0.01 style=solid]
+	"reg_sum0/Q" -> "a0/A" [label=0.01 style=solid]
+	"reg_sum1/C" [label="reg_sum1/C
+AT: -1.00
+Slack: 0.00" fillcolor=white style=filled]
+	"reg_sum1/D" [label="reg_sum1/D
+AT: -1.00
+Slack: 0.00" fillcolor=white style=filled]
+	"reg_sum1/Q" [label="reg_sum1/Q
+AT: -1.00
+Slack: 0.00" fillcolor=white style=filled]
+	"reg_sum1/Q" -> "x1a/A" [label=0.01 style=solid]
+	"reg_sum1/Q" -> "a1a/A" [label=0.01 style=solid]
+}

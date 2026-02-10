@@ -49,6 +49,13 @@ uv run main.py --design design/accumulator.v --config config/sta_config.json --v
 uv run main.py --design design/accumulator.v --config config/sta_config.json --report sta_report.md
 ```
 
+**[NEW] 產生時序圖表**：
+使用 `--plot` 參數指定輸出的檔案名稱 (不含副檔名)：
+```bash
+uv run main.py --design design/accumulator.v --config config/sta_config.json --plot sta_graph
+```
+這將會產生 `sta_graph.png` 圖片，顯示電路的 DAG 結構與時序資訊。
+
 ## C++ 版本
 
 本專案亦提供 C++ 實作版本 (位於 `src/` 目錄)。

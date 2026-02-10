@@ -1,40 +1,45 @@
 from pyverilog.vparser.parser import parse
-from pyverilog.vparser.ast import InstanceList
+from pyverilog.vparser.ast import InstanceList, Description, ModuleDef, Port, Ioport, Input, Output, Pointer, Identifier
 import os
-import sys
-from .graph import Graph
+from typing import Dict, List, Any, Optional
+from .graph import Graph, Node
 
 class VerilogParser:
-    """Parses Verilog and builds the STA Graph."""
-    def __init__(self, library_config):
+    """Parses Verilog designs and builds the STA Graph."""
+    
+    def __init__(self, library_config: Dict[str, Any]):
         self.lib = library_config
         self.graph = Graph()
-        self.net_drivers = {} # NetName -> [Node]
-        self.net_loads = {}   # NetName -> [Node]
+        self.net_drivers: Dict[str, List[Node]] = {} # NetName -> [Node]
+        self.net_loads: Dict[str, List[Node]] = {}   # NetName -> [Node]
 
-    def parse(self, file_path):
+    def parse(self, file_path: str) -> Graph:
+        """Parses a Verilog file and returns the constructed STA Graph."""
         if not os.path.exists(file_path):
             raise FileNotFoundError(f"{file_path} not found")
             
         print(f"Parsing Verilog: {file_path}")
-        ast, _ = parse([file_path])
-        module = ast.description.definitions[0]
-        
-        # 1. Process Instances
-        for item in module.items:
+        try:
+            ast, _ = parse([file_path])
+            module_def: ModuleDef = ast.description.definitions[0]
+            
+            self._process_instances(module_def)
+            self._process_ports(module_def)
+            self._build_net_connections()
+            
+            return self.graph
+        except Exception as e:
+            raise RuntimeError(f"Failed to parse Verilog file: {e}") from e
+
+    def _process_instances(self, module_def: ModuleDef):
+        """Iterates over all instances in the module and processes them."""
+        for item in module_def.items:
             if isinstance(item, InstanceList):
                 for inst in item.instances:
-                    self._process_instance(inst)
-                    
-        # 2. Process Top Ports
-        self._process_ports(module)
-        
-        # 3. Connect Nets
-        self._build_net_connections()
-        
-        return self.graph
+                    self._process_single_instance(inst)
 
-    def _process_instance(self, inst):
+    def _process_single_instance(self, inst):
+        """Processes a single instance to create nodes and internal edges."""
         cell_type = inst.module
         inst_name = inst.name
         
@@ -43,53 +48,58 @@ class VerilogParser:
             return
 
         cell_info = self.lib['cells'][cell_type]
-        
-        # Iterate over ports to identify net connections
+        self._create_pin_nodes(inst, inst_name, cell_info)
+        self._create_internal_timing_arcs(inst_name, cell_info)
+
+    def _create_pin_nodes(self, inst, inst_name: str, cell_info: Dict[str, Any]):
+        """Creates graph nodes for instance pins and registers net connections."""
         for port in inst.portlist:
             pin_name = f"{inst_name}/{port.portname}"
-            net_name = self._get_net_name(port.argname)
+            net_name = self._resolve_net_name(port.argname)
             
             pin_node = self.graph.get_or_create_node(pin_name, "pin")
 
-            # Determine direction
             is_input = port.portname in cell_info.get('inputs', [])
             is_output = port.portname in cell_info.get('outputs', [])
 
             if is_input:
-                if net_name not in self.net_loads: self.net_loads[net_name] = []
-                self.net_loads[net_name].append(pin_node)
+                self.net_loads.setdefault(net_name, []).append(pin_node)
             elif is_output:
-                if net_name not in self.net_drivers: self.net_drivers[net_name] = []
-                self.net_drivers[net_name].append(pin_node)
+                self.net_drivers.setdefault(net_name, []).append(pin_node)
 
-        # Create Internal Edges (Break Logic Loops at DFF)
-        if not cell_info.get('is_seq', False):
-            # Combinational
-            for out_pin in cell_info['outputs']:
+    def _create_internal_timing_arcs(self, inst_name: str, cell_info: Dict[str, Any]):
+        """Creates internal edges based on cell timing arcs."""
+        is_sequential = cell_info.get('is_seq', False)
+        
+        if not is_sequential:
+            # Combinational logic: Create arcs from all inputs to all outputs
+            delay = cell_info.get('delay', 0.0)
+            for out_pin in cell_info.get('outputs', []):
                 out_node = self.graph.get_or_create_node(f"{inst_name}/{out_pin}")
-                for in_pin in cell_info['inputs']:
+                for in_pin in cell_info.get('inputs', []):
                     in_node = self.graph.get_or_create_node(f"{inst_name}/{in_pin}")
-                    delay = cell_info['delay']
                     in_node.add_edge(out_node, delay, "internal")
         else:
-            # Sequential (Loop Breaking)
-            # No internal edge from D to Q
+            # Sequential logic (DFF): No internal combinational arc from D to Q
+            # Timing arcs like clk->Q are handled during analysis/arrival time propagation start points
             pass
 
-    def _process_ports(self, module):
-        for port in module.portlist.ports:
+    def _process_ports(self, module_def: ModuleDef):
+        """Processes top-level module ports."""
+        for port in module_def.portlist.ports:
+            # Pyverilog AST navigation to find the actual port details
             first_level = port.first
-            if first_level.__class__.__name__ == 'Ioport':
+            if isinstance(first_level, Ioport):
                 first = first_level.first
                 node = self.graph.get_or_create_node(first.name, "port")
-                if first.__class__.__name__ == 'Input':
-                     if first.name not in self.net_drivers: self.net_drivers[first.name] = []
-                     self.net_drivers[first.name].append(node)
-                elif first.__class__.__name__ == 'Output':
-                     if first.name not in self.net_loads: self.net_loads[first.name] = []
-                     self.net_loads[first.name].append(node)
+                
+                if isinstance(first, Input):
+                     self.net_drivers.setdefault(first.name, []).append(node)
+                elif isinstance(first, Output):
+                     self.net_loads.setdefault(first.name, []).append(node)
 
     def _build_net_connections(self):
+        """Creates edges between drivers and loads on the same net."""
         fanout_factor = self.lib.get('wire_load_model', {}).get('fanout_factor', 0.0)
         
         for net_name, drivers in self.net_drivers.items():
@@ -102,11 +112,11 @@ class VerilogParser:
                     for load in loads:
                         driver.add_edge(load, delay, "net")
 
-    def _get_net_name(self, argname):
-        # Helper to handle Pyverilog AST types
-        if argname.__class__.__name__ == 'Pointer':
+    def _resolve_net_name(self, argname: Any) -> str:
+        """Resolves the net name from Pyverilog AST nodes."""
+        if isinstance(argname, Pointer):
              return f"{argname.var}[{argname.ptr}]"
-        elif argname.__class__.__name__ == 'Identifier':
+        elif isinstance(argname, Identifier):
              return f"{argname.name}"
         else:
             return str(argname)

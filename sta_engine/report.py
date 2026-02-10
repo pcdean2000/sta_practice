@@ -1,10 +1,11 @@
 import os
 from datetime import datetime
+from typing import Dict, List, Any, Optional
 
 class ReportGenerator:
     """Generates a Markdown report for STA analysis results."""
 
-    def __init__(self, design_path, config, worst_slack, worst_node, results):
+    def __init__(self, design_path: str, config: Dict[str, Any], worst_slack: float, worst_node: Optional[str], results: List[Dict[str, Any]]):
         self.design_path = design_path
         self.config = config
         self.worst_slack = worst_slack
@@ -12,54 +13,81 @@ class ReportGenerator:
         self.results = results
         self.timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    def generate(self, output_path="sta_report.md"):
-        """Generates the Markdown report."""
+    def generate(self, output_path: str = "sta_report.md"):
+        """Generates the Markdown report at the specified path."""
+        try:
+            with open(output_path, 'w') as f:
+                f.write(self._generate_header())
+                f.write(self._generate_executive_summary())
+                f.write(self._generate_configuration_section())
+                f.write(self._generate_critical_paths_section())
+                f.write(self._generate_footer())
+            
+            print(f"Report generated at: {os.path.abspath(output_path)}")
+        except IOError as e:
+            print(f"Error writing report to {output_path}: {e}")
+
+    def _generate_header(self) -> str:
+        return (
+            f"# STA Analysis Report\n\n"
+            f"**Generated on:** {self.timestamp}\n\n"
+        )
+
+    def _generate_executive_summary(self) -> str:
+        status = "MET" if self.worst_slack >= 0 else "VIOLATED"
+        status_icon = "✅" if status == "MET" else "❌"
         
-        with open(output_path, 'w') as f:
-            f.write(f"# STA Analysis Report\n\n")
-            f.write(f"**Generated on:** {self.timestamp}\n\n")
-            
-            f.write("## 1. Executive Summary\n\n")
-            status = "MET" if self.worst_slack >= 0 else "VIOLATED"
-            status_icon = "✅" if status == "MET" else "❌"
-            
-            f.write(f"- **Design:** `{self.design_path}`\n")
-            f.write(f"- **Timing Status:** {status_icon} **{status}**\n")
-            f.write(f"- **Worst Slack:** `{self.worst_slack:+.4f} ns`\n")
-            if self.worst_node:
-                f.write(f"- **Critical Node:** `{self.worst_node}`\n")
-            f.write("\n")
+        summary = (
+            "## 1. Executive Summary\n\n"
+            f"- **Design:** `{self.design_path}`\n"
+            f"- **Timing Status:** {status_icon} **{status}**\n"
+            f"- **Worst Slack:** `{self.worst_slack:+.4f} ns`\n"
+        )
+        
+        if self.worst_node:
+            summary += f"- **Critical Node:** `{self.worst_node}`\n"
+        
+        return summary + "\n"
 
-            f.write("## 2. Configuration\n\n")
-            f.write("| Parameter | Value |\n")
-            f.write("| :--- | :--- |\n")
-            f.write(f"| Clock Period | `{self.config['timing_constraints']['clock_period']} ns` |\n")
-            f.write(f"| Clock Uncertainty | `{self.config['timing_constraints']['clock_uncertainty']} ns` |\n")
-            f.write(f"| Input Delay | `{self.config['timing_constraints']['input_delay']} ns` |\n")
-            f.write(f"| Output Delay | `{self.config['timing_constraints']['output_delay']} ns` |\n")
-            f.write("\n")
+    def _generate_configuration_section(self) -> str:
+        constraints = self.config.get('timing_constraints', {})
+        return (
+            "## 2. Configuration\n\n"
+            "| Parameter | Value |\n"
+            "| :--- | :--- |\n"
+            f"| Clock Period | `{constraints.get('clock_period', 'N/A')} ns` |\n"
+            f"| Clock Uncertainty | `{constraints.get('clock_uncertainty', 'N/A')} ns` |\n"
+            f"| Input Delay | `{constraints.get('input_delay', 'N/A')} ns` |\n"
+            f"| Output Delay | `{constraints.get('output_delay', 'N/A')} ns` |\n"
+            "\n"
+        )
 
-            f.write("## 3. Top Critical Paths\n\n")
-            f.write("The following table shows the top timing paths (up to 10 worst violations) or all paths if fewer than 10.\n\n")
-            
-            # Sort results by slack (ascending) to show worst paths first
-            sorted_results = sorted(self.results, key=lambda x: x['slack'])
-            top_results = sorted_results[:20] 
+    def _generate_critical_paths_section(self) -> str:
+        content = (
+            "## 3. Top Critical Paths\n\n"
+            "The following table shows the top timing paths (up to 20 worst violations).\n\n"
+            "| Node | AT (ns) | RT (ns) | Slack (ns) | Status |\n"
+            "| :--- | :---: | :---: | :---: | :---: |\n"
+        )
+        
+        # Sort results by slack (ascending) to show worst paths first
+        sorted_results = sorted(self.results, key=lambda x: x['slack'])
+        top_results = sorted_results[:20]
 
-            f.write("| Node | AT (ns) | RT (ns) | Slack (ns) | Status |\n")
-            f.write("| :--- | :---: | :---: | :---: | :---: |\n")
+        for res in top_results:
+            status_str = "MET" if res['slack'] >= 0 else "VIOLATED"
+            icon = "✅" if res['slack'] >= 0 else "❌"
             
-            for res in top_results:
-                status_str = "MET" if res['slack'] >= 0 else "VIOLATED"
-                row_style = "" 
-                # Note: Markdown doesn't support row color natively without HTML, 
-                # but we can use emoji or bolding.
-                icon = "✅" if res['slack'] >= 0 else "❌"
-                
-                f.write(f"| `{res['node']}` | {res['at']:.4f} | {res['rt']:.4f} | **{res['slack']:+.4f}** | {icon} {status_str} |\n")
+            # Highlight slack in bold
+            content += (
+                f"| `{res['node']}` | "
+                f"{res['at']:.4f} | "
+                f"{res['rt']:.4f} | "
+                f"**{res['slack']:+.4f}** | "
+                f"{icon} {status_str} |\n"
+            )
             
-            f.write("\n")
-            f.write("---\n")
-            f.write("*End of Report*\n")
+        return content + "\n"
 
-        print(f"Report generated at: {os.path.abspath(output_path)}")
+    def _generate_footer(self) -> str:
+        return "---\n*End of Report*\n"
