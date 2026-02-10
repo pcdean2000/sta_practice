@@ -1,0 +1,32 @@
+{
+    "timing_constraints": {
+        "clock_period": 1.0,
+        "clock_uncertainty": 0.05,
+        "input_delay": 0.2,
+        "output_delay": 0.2
+    },
+    "library": {
+        "units": {
+            "time": "ns",
+            "capacitance": "pF"
+        },
+        "cells": {
+            "INV":  {"inputs": ["A"], "outputs": ["Y"], "delay": 0.02},
+            "BUF":  {"inputs": ["A"], "outputs": ["Y"], "delay": 0.02},
+            "AND2": {"inputs": ["A", "B"], "outputs": ["Y"], "delay": 0.04},
+            "OR2":  {"inputs": ["A", "B"], "outputs": ["Y"], "delay": 0.04},
+            "XOR2": {"inputs": ["A", "B"], "outputs": ["Y"], "delay": 0.06},
+            "DFF":  {
+                "inputs": ["C", "D"], 
+                "outputs": ["Q"], 
+                "delay_clk_q": 0.08, 
+                "setup": 0.05, 
+                "hold": 0.0,
+                "is_seq": true
+            }
+        },
+        "wire_load_model": {
+            "fanout_factor": 0.005
+        }
+    }
+}
