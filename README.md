@@ -49,6 +49,27 @@ uv run main.py --design design/accumulator.v --config config/sta_config.json --v
 uv run main.py --design design/accumulator.v --config config/sta_config.json --report sta_report.md
 ```
 
+## C++ 版本
+
+本專案亦提供 C++ 實作版本 (位於 `src/` 目錄)。
+
+### 編譯與執行
+
+使用 `make` 進行編譯與執行：
+
+```bash
+# 編譯
+make
+
+# 執行 (預設執行 accumulator.v 分析)
+make run
+
+# 清除編譯檔案
+make clean
+```
+
+執行後會產生 `sta_report_cpp.md` 報告。
+
 ## 設定說明 (`config/sta_config.json`)
 
 此檔案控制所有的時序參數，無需修改程式碼即可調整測試條件。
